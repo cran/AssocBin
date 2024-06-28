@@ -15,7 +15,7 @@ makeCriteria <- function(...) {
     cl <- match.call() # capturing inputs
     crits <- as.list(cl) # change to a list
     ## remove self reference, collapse into single OR
-    paste(sapply(crits[-1], deparse), collapse = " | ")
+    paste(c(sapply(crits[-1], deparse), "stopped"), collapse = " | ")
 }
 
 ##' @title Check bins against stop criteria
@@ -30,10 +30,10 @@ makeCriteria <- function(...) {
 ##' @return A logical vector of the same length as `binList`.
 ##' @examples
 ##' crits <- makeCriteria(depth >= 5, n < 1)
-##' binList1 <- list(list(x = c(1,2), y = c(3,1), depth = 1, n = 2),
-##'                 list(x = c(3,4), y = c(2,4), depth = 1, n = 2))
-##' binList2 <- list(list(x = c(1,2), y = c(3,1), depth = 6, n = 2),
-##'                 list(x = c(), y = c(), depth = 1, n = 0))
+##' binList1 <- list(makeBin(x = c(1,2), y = c(3,1), depth = 1, n = 2),
+##'                 makeBin(x = c(3,4), y = c(2,4), depth = 1, n = 2))
+##' binList2 <- list(makeBin(x = c(1,2), y = c(3,1), depth = 6, n = 2),
+##'                 makeBin(x = c(), y = c(), depth = 1, n = 0))
 ##' stopper(binList1, crits)
 ##' stopper(binList2, crits)
 ##' @author Chris Salahub

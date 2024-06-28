@@ -2,9 +2,9 @@
 % Please edit documentation in R/splitters.R
 \name{maxScoreSplit}
 \alias{maxScoreSplit}
-\title{Bivariate score maximizing splitting}
+\title{Size-restricted bivariate score maximizing splitting}
 \usage{
-maxScoreSplit(bin, scorer, ties = halfCutTie, pickMax = which.max, ...)
+maxScoreSplit(bin, scorer, minExp = 5, squarify = FALSE)
 }
 \arguments{
 \item{bin}{a bin to be split with elements `x`, `y`, `depth`,
@@ -14,33 +14,27 @@ maxScoreSplit(bin, scorer, ties = halfCutTie, pickMax = which.max, ...)
 split coordinates and the bounds of `bin` and returns a numeric
 vector of scores for each}
 
-\item{ties}{function which is called to break ties when all splits
-generate the same score}
+\item{minExp}{value giving the smallest expected count allowed for
+bin splits}
 
-\item{pickMax}{function which accepts a list of scores and returns
-the element of the largest score according to some rule}
-
-\item{...}{optional additional arguments to `scorer`}
+\item{squarify}{logical value, should we force splitting on
+the longer side regardless of scores?}
 }
 \value{
 A list of two bins resulting from the split of `bin`
 along the corresponding margin at the maximum location
 }
 \description{
-A function which splits a bin based on the location
-maximizing a score function.
+Splits a bin based on the location maximizing a score
+function with restrictions on minimum bin size.
 }
 \details{
 This function serves as a wrapper which manages the
-interaction of a score function, marginal splitting functions,
-tie breaking function, and a maximum selection function to split
-a bin at the observation coordinate which maximizes the score
-function.
+logic of splitting bins using a score function while maintaining
+a minimum size and allowing forced splits along the wider edge.
 }
 \examples{
-bin <- list(x = 1:10, y = sample(1:10),
-            bnds = list(x = c(0, 10), y = c(0, 10)),
-            expn = 10, n = 10, depth = 0)
+bin <- makeBin(x = 1:10, y = sample(1:10))
 maxScoreSplit(bin, chiScores)
 maxScoreSplit(bin, miScores) # pretty similar for both
 maxScoreSplit(bin, randScores)

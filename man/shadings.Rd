@@ -5,15 +5,15 @@
 \alias{residualFill}
 \title{Generate fills encoding bin features}
 \usage{
-depthFill(bins, colrng = c("floralwhite", "firebrick"))
+depthFill(bins, colrng = c("white", "firebrick"))
 
 residualFill(
   bins,
   resFun = binChi,
   maxRes,
-  colrng = c("steelblue", "floralwhite", "firebrick"),
+  colrng = c("steelblue", "white", "firebrick"),
   breaks = NA,
-  nbr = 50
+  nbr = NA
 )
 }
 \arguments{
@@ -29,7 +29,10 @@ generate the final hue scale}
 the correct origin, taken to be the maximum observed residual if
 not provided}
 
-\item{breaks}{numeric vector of breakpoints to control hues}
+\item{breaks}{numeric vector of breakpoints to control hues,
+defaults to breakpoints that indicate Pearson residuals outside
+the asymptotic 95 percent confidence interval around zero under
+the null}
 
 \item{nbr}{number of breakpoints for automatic breakpoint
 generation if `breaks` is not provided}
@@ -57,12 +60,10 @@ residual function applied to each bin.
 
 }}
 \examples{
-bin <- list(x = 1:10, y = sample(1:10),
-            bnds = list(x = c(0, 10), y = c(0, 10)),
-            expn = 10, n = 10, depth = 0)
+bin <- makeBin(x = 1:10, y = sample(1:10))
 bin2 <- halfSplit(bin, "x")
 bin3 <- unlist(lapply(bin2, maxScoreSplit,
-                      scorer = chiScores),
+                      scorer = chiScores, minExp = 2),
                recursive = FALSE)
 plotBinning(bin3, fill = depthFill(bin3)) # all the same depth
 plotBinning(bin3, fill = residualFill(bin3)) # diff resids

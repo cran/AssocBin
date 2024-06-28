@@ -50,6 +50,13 @@ plotBinning(randBin, pch = 19, cex = 1,
             col = adjustcolor("gray50", 0.5))
 
 ## -----------------------------------------------------------------------------
+## next fill by residual
+plotBinning(randBin, pch = 19, cex = 1,
+            fill = residualFill(randBin, colrng = c("steelblue", "white", "firebrick"),
+                                nbr = 50),
+            col = adjustcolor("gray50", 0.5))
+
+## -----------------------------------------------------------------------------
 depx <- rnorm(10*n)
 depy <- depx + rnorm(10*n, sd = 0.4)
 plot(depx, depy)
