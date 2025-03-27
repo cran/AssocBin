@@ -113,7 +113,13 @@ plotBinning <- function(bins, fill, add = FALSE, factor = 0.5,
 ##' @title Generate fills encoding bin features
 ##' @description These functions all accept a list of bins and return
 ##' a vector of colours of the same length that encode some feature of
-##' the bins.
+##' the bins. importanceFill is a special case which adjusts the
+##' residuals obtained by the binChi function by the variance of each
+##' bin to obtain a better normal approximation and then only shades
+##' those bins which are greater than 2 standard deviations from the
+##' mean with a color ramp that fully saturates for any bins which
+##' are greater than a 0.001 standard normal quantile with a
+##' Bonferroni correction applied to account for the number of bins.
 ##' @details Two functions are provided by default: one which
 ##' generates a fill based on bin depth and the other based on a
 ##' residual function applied to each bin.
@@ -161,5 +167,38 @@ residualFill <- function(bins, resFun = binChi, maxRes,
         }
     }
     residCols <- cut(residuals, breaks) # distribute colors
+    colorRampPalette(colrng)(length(breaks)-1)[as.numeric(residCols)]
+}
+##' @describeIn shadings Fill by variance-adjusted chi residuals
+importanceFill <- function(bins, nbr = NA, breaks = NA,
+                           colrng = c("steelblue", "white",
+                                      "firebrick")) {
+    obs <- sapply(bins, function(x) x$n)
+    wids <- sapply(bins, function(x) diff(x$bnds$x))
+    hgts <- sapply(bins, function(x) diff(x$bnds$y))
+    N <- sum(obs)
+    widAdj <- 1 - wids/N
+    hgtAdj <- 1 - hgts/N
+    expn <- wids*hgts/N
+    denom <- N/(N-1)*widAdj*hgtAdj*expn
+    stRes <- (obs - expn)/(sqrt(expn))
+    stRes[denom == 0] <- 0 # full margin bins have obs = exp
+    maxRes <- 1.01*max(abs(stRes))
+    nbins <- length(bins)
+    newNormQ <- qnorm(1 - 0.001/nbins) # bonferroni upper shade bound
+    if (is.na(breaks)) {
+        if (is.na(nbr)) { # default: start shading above 2
+            nbr <- 16
+        }
+        qSeq <- seq(2, newNormQ, length.out = nbr - 3)
+        if (maxRes > max(qSeq)) {
+            breaks <- c(-maxRes, -rev(qSeq), qSeq, maxRes)
+        } else {
+            breaks <- c(-rev(qSeq), qSeq)
+        }
+    } else {
+        breaks <- sort(breaks)
+    }
+    residCols <- cut(stRes, breaks) # distribute colors
     colorRampPalette(colrng)(length(breaks)-1)[as.numeric(residCols)]
 }

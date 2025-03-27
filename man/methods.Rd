@@ -7,7 +7,17 @@
 \usage{
 \method{summary}{inDep}(object, ...)
 
-\method{plot}{inDep}(x, ..., which = 1:5, border = "black", buffer = 0.01)
+\method{plot}{inDep}(
+  x,
+  ...,
+  which = 1:5,
+  border = "black",
+  buffer = 0.01,
+  dropPoints = FALSE,
+  colrng = c("steelblue", "white", "firebrick"),
+  nbr = NA,
+  pch = "."
+)
 }
 \arguments{
 \item{object}{`inDep` object to summarize}
@@ -22,6 +32,17 @@ binnings are ordered by increasing p-value}
 \item{border}{colour of borders to be drawn on the binnings}
 
 \item{buffer}{relative width of empty space separating categories}
+
+\item{dropPoints}{logical: should points be dropped for the plot
+of the binnings?}
+
+\item{colrng}{colour range to be passed to `residualFill` for
+plotting}
+
+\item{nbr}{number of breaks to be passed to `residualFill` for
+plotting}
+
+\item{pch}{point type passed to plot}
 }
 \value{
 Nothing for the plot method, while summary quietly returns

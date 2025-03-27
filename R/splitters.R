@@ -156,13 +156,13 @@ maxScoreSplit <- function(bin, scorer, minExp = 5,
     prop <- minExp/expn
     deltax <- diff(bin$bnds$x)
     deltay <- diff(bin$bnds$y)
-    xfrm <- bin$bnds$x + ceiling(prop*deltax)*c(1, -1) # minExp bounds
-    yfrm <- bin$bnds$y + ceiling(prop*deltay)*c(1, -1)
+    xfrm <- bin$bnds$x + prop*deltax*c(1, -1) # minExp bounds
+    yfrm <- bin$bnds$y + prop*deltay*c(1, -1)
     if ((xfrm[2] - xfrm[1]) >= 0) {
         ## take advantage of R ordering: ensure frame includes pts
         xaug <- c(min(bin$x)-1, bin$x, xfrm) # augment with frame
         xsort <- order(xaug)
-        xlowFrm <- which(xsort == (length(xaug) - 1))
+        xlowFrm <- which(xsort == (length(xaug) - 1)) # identify frame
         xupFrm <- which(xsort == length(xaug))
         xinfrm <- xlowFrm:xupFrm
         xcntblw <- cumsum(c(0, rep(1, bin$n), 0, 0)[xsort])[xinfrm]
@@ -456,8 +456,8 @@ rUnifSplit <- function (bin, minExp = 0, squarify = FALSE) {
     wider <- deltax > deltay
     if (squarify) u <- as.numeric(wider) else u <- runif(1)
     if (u >= 0.5) {
-        lower <- bin$bnds$x[1] + ceiling(prop*deltax)
-        upper <- bin$bnds$x[2] - ceiling(prop*deltax)
+        lower <- bin$bnds$x[1] + prop*deltax
+        upper <- bin$bnds$x[2] - prop*deltax
         if (upper <= lower) {
             bin$stopped <- TRUE
             list(bin)
@@ -469,8 +469,8 @@ rUnifSplit <- function (bin, minExp = 0, squarify = FALSE) {
         }
     }
     else {
-        lower <- bin$bnds$y[1] + ceiling(prop*deltay)
-        upper <- bin$bnds$y[2] - ceiling(prop*deltay)
+        lower <- bin$bnds$y[1] + prop*deltay
+        upper <- bin$bnds$y[2] - prop*deltay
         if (upper <= lower) {
             bin$stopped <- TRUE
             list(bin)

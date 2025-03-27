@@ -9,6 +9,7 @@ inDep(
   stopCriteria,
   catCon = uniRIntSplit,
   conCon = rIntSplit,
+  ptype = c("simple", "conservative", "gamma", "best"),
   dropPoints = FALSE
 )
 }
@@ -24,11 +25,31 @@ cateogorical and one continuous variable}
 \item{conCon}{splitting function to apply to pairs of continuous
 variables}
 
+\item{ptype}{one of 'simple', 'conservative', 'gamma', or
+'fitted'; the type of p-values to compute for continuous pairs
+and pairs of mixed type. 'Conservative' assumes a chi-square
+distribution to the statistic with highly conservative degrees
+of freedom that are based on continuous uniform margins and so
+do not account for the constraints introduced by the ranks.
+'Simple' assumes a chi-square distribution but uses
+contingency-table inspired degrees of freedom which can be
+slightly anti-conservative in the case of continuous pairs but
+work well for continuous/categorical comparisons. 'Gamma'
+assumes a gamma distribution on the resulting statistics with
+parameters fit from the same empirical investigation. 'Fitted'
+mixes the gamma approach and the chi-squared approach these by
+applying 'gamma' to continuous-categorical comparisons and a
+least squares fitted version of the simple approximation to
+continuous-continuous comparisons. For all
+categorical-categorical comparisons the contingency table
+degrees of freedom are use in a chi-squared distribution. More
+details can be found in the associated paper.}
+
 \item{dropPoints}{logical; should returned bins contain points?}
 }
 \value{
 An `inDep` object, with slots `data`, `types`, `pairs`,
-`binnings`, `residuals`, `statistics`, `dfs`, `logps`, and
+`binnings`, `residuals`, `statistics`, `K`, `logps`, and
 `pvalues` that stores the results of using recursive binning with
 the specified splitting logic to test independence on a data set.
 `data` gives the name of the data object in the global environment
@@ -39,12 +60,11 @@ is the binning fir to the corresponding pair by the recursive
 binning algorithm, `residuals` is list of numeric vectors giving
 the residual for each bin of each pairwise binning, `statistics`
 is a numeric vector giving the chi-squared statistic for each
-binning, `dfs` is a numeric vector giving the degrees of freedom
-of each binning based on the variable type combination and the
-final number of bins, `logps` gives the natural logarithm of
-the statistic's p-value, and finally `pvalues` is a numeric
-vector of p-values for `statistics` assuming a chi-squared null
-distribution with `dfs` degrees of freedom.  Internally, the
+binning, `K` is a numeric vector giving the number of bins in each
+binning, `logps` gives the natural logarithm of the statistic's
+p-value, and finally `pvalues` is a numeric vector of p-values
+for `statistics` based on the specified p-value computation, which
+defaults to 'simple'.  Internally, the
 p-values are computed on the log scale to better distinguish
 between strongly dependent pairs and the `pvalues` returned are
 computed by calling `exp(logps)`. The order of all returned values
