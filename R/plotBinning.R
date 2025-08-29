@@ -12,12 +12,12 @@
 ##' of the same length as `bins`
 ##' @param add logical, should the plot of bins be added to the
 ##' current plot area?
-##' @param factor number between 0 and 1, what factor should be
-##' applied to jittering of categorical variables?
+##' @param factor number between 0 and 1 giving the factor applied to
+##' jitter categorical variables
 ##' @param xlab string, the label to be placed on the x axis
 ##' @param ylab string, the label to be placed on the y axis
-##' @param suppressLabs logical, should axis labels be suppressed or
-##' displayed?
+##' @param showXax logical indicating whether to plot x axis markings
+##' @param showYax logical indicating whether to plot y axis markings
 ##' @param border argument to be passed to `rect` internally giving
 ##' the border colour
 ##' @param ... optional additional arguments to be passed to `plot`,
@@ -34,17 +34,16 @@
 ##' plotBinning(bin3)
 ##' @author Chris Salahub
 plotBinning <- function(bins, fill, add = FALSE, factor = 0.5,
-                        xlab = "x", ylab = "y", suppressLabs = FALSE,
-                        border = "black", ...) {
+                        xlab = "x", ylab = "y", showXax = FALSE,
+                        showYax = FALSE, border = "black", ...) {
     if (missing(fill)) fill <- rep(NA, length(bins)) # custom fill
     nbins <- length(bins)
     xbnds <- t(sapply(bins, function(bn) bn$bnds$x))
     ybnds <- t(sapply(bins, function(bn) bn$bnds$y))
     xfac <- is.factor(bins[[1]]$x)
     yfac <- is.factor(bins[[1]]$y) # check bin 1 for factor status
-    if (suppressLabs) {
-        xaxt <- yaxt <- "n"
-    } else xaxt <- yaxt <- "s"
+    if (!showYax) yaxt <- "n" else yaxt <- "s"
+    if (!showXax) xaxt <- "n" else xaxt <- "s"
     if (!add) { # create new plot area
         if (xfac & yfac) { # depends on what is a factor
             plot(NA, xlim = range(xbnds), ylim = range(ybnds),
@@ -54,9 +53,15 @@ plotBinning <- function(bins, fill, add = FALSE, factor = 0.5,
             unqy <- unique(ybnds)
             xlocs <- sort((unqx[,1] + unqx[,2])/2)
             ylocs <- sort((unqy[,1] + unqy[,2])/2)
-            if (!suppressLabs) {
+            if (showXax) {
+                axis(side = 1, labels = FALSE,
+                     at = c(unqx[,1], unqx[nrow(unqx),2]))
                 mtext(levels(bins[[1]]$x), at = xlocs, side = 1,
                       line = 1)
+            }
+            if (showYax) {
+                axis(side = 2, labels = FALSE,
+                     at = c(unqy[,1], unqy[nrow(unqy),2]))
                 mtext(levels(bins[[1]]$y), at = ylocs, side = 2,
                       line = 1)
             }
@@ -66,7 +71,9 @@ plotBinning <- function(bins, fill, add = FALSE, factor = 0.5,
                  ...)
             unqx <- unique(xbnds)
             xlocs <- sort((unqx[,1] + unqx[,2])/2)
-            if (!suppressLabs) {
+            if (showXax) {
+                axis(side = 1, labels = FALSE,
+                     at = c(unqx[,1], unqx[nrow(unqx),2]))
                 mtext(levels(bins[[1]]$x), at = xlocs, side = 1,
                       line = 1)
             }
@@ -76,7 +83,9 @@ plotBinning <- function(bins, fill, add = FALSE, factor = 0.5,
                  ...)
             unqy <- unique(ybnds)
             ylocs <- sort((unqy[,1] + unqy[,2])/2)
-            if (!suppressLabs) {
+            if (showYax) {
+                axis(side = 2, labels = FALSE,
+                     at = c(unqy[,1], unqy[nrow(unqy),2]))
                 mtext(levels(bins[[1]]$y), at = ylocs, side = 2,
                       line = 1)
             }
@@ -85,10 +94,12 @@ plotBinning <- function(bins, fill, add = FALSE, factor = 0.5,
                  xlab = xlab, ylab = ylab, xaxt = xaxt,
                  yaxt = yaxt, ...)
         }
-    } # add bins and points
+    } # add bins
     for (ii in seq_along(bins)) {
         rect(xbnds[ii,1], ybnds[ii,1], xbnds[ii,2], ybnds[ii,2],
              col = fill[ii], border = border)
+    } # add points after to avoid overplotting
+    for (ii in seq_along(bins)) {
         if (xfac) {
             xa <- diff(bins[[ii]]$bnds$x)/2
             pltx <- jitter(rep((bins[[ii]]$bnds$x[1] +
@@ -110,7 +121,7 @@ plotBinning <- function(bins, fill, add = FALSE, factor = 0.5,
 }
 
 ##' Shadings
-##' @title Generate fills encoding bin features
+##' @title Encoding bin features to bin colour fills
 ##' @description These functions all accept a list of bins and return
 ##' a vector of colours of the same length that encode some feature of
 ##' the bins. importanceFill is a special case which adjusts the
@@ -120,17 +131,16 @@ plotBinning <- function(bins, fill, add = FALSE, factor = 0.5,
 ##' mean with a color ramp that fully saturates for any bins which
 ##' are greater than a 0.001 standard normal quantile with a
 ##' Bonferroni correction applied to account for the number of bins.
-##' @details Two functions are provided by default: one which
-##' generates a fill based on bin depth and the other based on a
-##' residual function applied to each bin.
+##' @details depthFill and residualFill do as indicated: mapping the
+##' bin depths and residual colours to saturations applied to the bins.
 ##' @param bins list of bins to be visualized
 ##' @param colrng hue range to be passed to `colorRampPalette` to
 ##' generate the final hue scale
 ##' @param resFun function which returns a result with a name element
 ##' `residuals` that is a numeric vector of the same length as `bins`
 ##' @param maxRes numeric maximum value of the residuals to maintain
-##' the correct origin, taken to be the maximum observed residual if
-##' not provided
+##' the correct origin and scale the saturation correctly, taken to be
+##' the maximum observed residual if not provided
 ##' @param breaks numeric vector of breakpoints to control hues,
 ##' defaults to breakpoints that indicate Pearson residuals outside
 ##' the asymptotic 95 percent confidence interval around zero under
@@ -145,7 +155,7 @@ plotBinning <- function(bins, fill, add = FALSE, factor = 0.5,
 ##'                       scorer = chiScores, minExp = 2),
 ##'                recursive = FALSE)
 ##' plotBinning(bin3, fill = depthFill(bin3)) # all the same depth
-##' plotBinning(bin3, fill = residualFill(bin3)) # diff resids
+##' plotBinning(bin3, fill = residualFill(bin3)) # chi resids
 ##' @author Chris Salahub
 ##' @describeIn shadings Fill by depth
 depthFill <- function(bins, colrng = c("white", "firebrick")) {
@@ -181,7 +191,7 @@ importanceFill <- function(bins, nbr = NA, breaks = NA,
     hgtAdj <- 1 - hgts/N
     expn <- wids*hgts/N
     denom <- N/(N-1)*widAdj*hgtAdj*expn
-    stRes <- (obs - expn)/(sqrt(expn))
+    stRes <- (obs - expn)/(sqrt(denom))
     stRes[denom == 0] <- 0 # full margin bins have obs = exp
     maxRes <- 1.01*max(abs(stRes))
     nbins <- length(bins)

@@ -19,7 +19,7 @@ str(heartClean)
 
 ## -----------------------------------------------------------------------------
 stopCrits <- makeCriteria(depth >= 6, n < 1, expn <= 10)
-assocs <- inDep(heartClean, stopCriteria = stopCrits)
+assocs <- DepSearch(heartClean, stopCriteria = stopCrits)
 
 ## -----------------------------------------------------------------------------
 summary(assocs)
@@ -35,10 +35,10 @@ plot(assocs, which = 6:10) # like the next 5 strongest
 plot(assocs, which = 62:66) # or the 5 weakest relationships
 
 ## -----------------------------------------------------------------------------
-maxCatCon <- function(bn) uniMaxScoreSplit(bn, chiScores)
+maxCatCon <- function(bn, on) uniMaxScoreSplit(bn, chiScores, on = on)
 maxConCon <- function(bn) maxScoreSplit(bn, chiScores)
-maxPairs <- inDep(data = heartClean, stopCriteria = stopCrits, 
-                  catCon = maxCatCon, conCon = maxCatCon)
+maxPairs <- DepSearch(data = heartClean, stopCriteria = stopCrits, 
+                      catCon = maxCatCon, conCon = maxConCon)
 summary(maxPairs)
 
 ## ----fig.width = 5, fig.height = 8--------------------------------------------
@@ -54,8 +54,8 @@ plot(randOrd, maxOrd, xlab = "Random rank", ylab = "Max chi rank",
 ## -----------------------------------------------------------------------------
 heartCleve <- heartClean[heartClean$study == "cleveland", ]
 heartCleve$study <- NULL
-cleveAssoc <- inDep(heartCleve, stopCriteria = stopCrits, catCon = maxCatCon,
-                    conCon = maxConCon)
+cleveAssoc <- DepSearch(heartCleve, stopCriteria = stopCrits, catCon = maxCatCon,
+                        conCon = maxConCon)
 summary(cleveAssoc)
 
 ## ----fig.width = 5, fig.height = 8--------------------------------------------
