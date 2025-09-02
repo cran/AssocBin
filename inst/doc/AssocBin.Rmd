@@ -13,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(AssocBin)
 ```
 
-This vignette introduces users to the main features of the `AssocBin` package. It begins with a high-level overview of the basic functions and their uses before examining ways to customize the package behaviour. Rather than get into technical detail from the beginning, the package outputs and classes will be used to demonstrate these aspects of the implementation. Hopefully, that will make this vignette more approachable.
+This vignette introduces the main features of the `AssocBin` package. It begins with a high-level overview of the basic functions and their uses before examining ways to customize the package behaviour. The examples are interspersed with relevant theory to motivate the package, and a full treatment can be found in [Salahub and Oldford, 2025](https://doi.org/10.1002/sam.70042).
 
 ## Basic use
 
@@ -27,7 +27,7 @@ The `heart` data can be loaded from the package using:
 data(heart)
 ```
 
-Inspecting the data:
+Here is a summary of its structure:
 
 ```{r}
 str(heart)
@@ -51,7 +51,7 @@ It contains 920 observations of 15 variables collected on patients referred to v
 14. `num`: count of major blood vessels in the heart with a narrowing of greater than 50%
 15. `study`: the location of the patient's testing
 
-Of particular interest is the `num` variable, the original response in the study which collected the data ([Detrano et al., 1989](https://www.semanticscholar.org/paper/International-application-of-a-new-probability-for-Detrano-J%C3%A1nosi/a7d714f8f87bfc41351eb5ae1e5472f0ebbe0574)). It counts the number of diseased of coronary vessels, where the presence of disease is defined as a narrowing of the vessel by more than 50% from a healthy baseline. Basically, patients with `num=0` have hearts without serious coronary artery disease and the severity of disease increases with each integer increase of `num` due to more blood vessels being blocked significantly.
+Of particular interest is the `num` variable, the original response in the study which collected the data ([Detrano et al., 1989](https://doi.org/10.1016/0002-9149(89)90524-9)). It counts the number of diseased of coronary vessels, where the presence of disease is defined as a narrowing of the vessel by more than 50% from a healthy baseline. Basically, patients with `num=0` have hearts without serious coronary artery disease and the severity of disease increases with each integer increase of `num` due to more blood vessels being blocked significantly.
 
 For simplicity, we'll clean the data somewhat by removing mostly missing variables and dropping incomplete observations for the rest of the vignette.
 
@@ -93,7 +93,7 @@ rbind(cbind(table(num = heartClean$num, sex = heartClean$sex), total = table(hea
 
 Each coloured cell, or bin, in the departure display corresponds to a count in the table excluding the columns and rows labelled `total`, which provide the marginal distributions. The width and height of each bin reflect these distributions and are proportional to the corresponding row and column totals respectively. The area of each bin is therefore proportional to the expected proportion of points it contains under the assumption of independence (when the joint distribution is proportional to the product of the marginal distributions). Saturation and hue communicate how severely the observed counts exceed or fall short of this expected count.
 
-Take, for example, the bin with labelled 'female' horizontally and '0' vertically. The width of this bin is given by the count of female patients (174) divided by the total number of patients (740) then multiplied by the width of the plotting area. This means it occupies a relative width of $w= 174/740 = 0.235$ of the plot width. Its height is similarly determined by the count of patients without any coronary artery disease (CAD) divided by the total number and it has a relative height of $h= 357/740 = 0.482$ to the plot. 
+Take, for example, the bin labelled 'female' horizontally and '0' vertically. The width of this bin is given by the count of female patients (174) divided by the total number of patients (740) then multiplied by the width of the plotting area. This means it occupies a relative width of $w= 174/740 = 0.235$ of the plot width. Its height is similarly determined by the count of patients without any coronary artery disease (CAD) divided by the total number and it has a relative height of $h= 357/740 = 0.482$ to the plot. 
 
 Under independence, the joint probability $P(\text{sex}=x, \text{num}=y)$ obeys the factorization
 $$P(\text{sex}=x, \text{num}=y) = P(\text{sex}=x) P(\text{num}=y)$$
@@ -154,11 +154,11 @@ AgeVsNum <- depDisplay(heartClean$thalach, heartClean$oldpeak,
                        border = "black")
 ```
 
-As before, the labels on the axis of the categorical variable denote the relative sizes of each labelled category. In contrast, the continuous margin is rather chaotic and worth discussing.
+As before, the labels on the axis of the categorical variable denote the relative sizes of each labelled category. In contrast, the continuous margins are rather chaotic and worth discussing.
 
 When both variables are categorical, the joint distribution can be fully described by the joint probabilities of each bin. When one, or both, of the variables being compared are continuous, representing the joint distribution between the two is more complicated. No single contingency table fully represents their joint distribution because aggregation obscures variation at finer resolutions. As well, any constant grid applied to every data set will have blind spots: patterns which it lacks power to detect. To create a set of bins to display and measure continuous data, then, we need a dynamic algorithm to build a bivariate histogram for a given data set.
 
-Creating such a histogram can be done in many ways (see Chapter 2.3 [here](https://uwspace.uwaterloo.ca/items/87effe1e-e2a4-4e28-a977-072ba9b06ca7) for a brief survey), but there are advantages to constructing them using random recursive splits (see [Salahub and Oldford, 2025](https://arxiv.org/abs/2311.08561)). These splits occur in a stepwise fashion, where each bin is split at each step until a set of stop criteria are satisfied. In the case of random recursive splits to measure association, natural stop criteria are based on the size of the bin which is proportional to the number of points we expect it to contain.
+Creating such a histogram can be done in many ways (see Chapter 2.3 [here](http://hdl.handle.net/10012/20262) for a brief survey), but there are advantages to constructing them using random recursive splits (see [Salahub and Oldford, 2025](https://doi.org/10.1002/sam.70042)). These splits occur in a stepwise fashion, where each bin is split at each step until a set of stop criteria are satisfied. In the case of random recursive splits to measure association, natural stop criteria are based on the size of the bin which is proportional to the number of points we expect it to contain.
 
 Of course, this requires that we know the expected count of each bin. We can accomplish this by converting continuous margins to their ranks, thereby ensuring a uniform distribution along the corresponding axis. To give a sense of the original distribution, the axis therefore displays the five number summary of the data at the corresponding ranks to give the minimum, maximum, median, and quartiles.
 
@@ -200,9 +200,9 @@ For a contingency table with $R$ rows and $C$ columns, we account for the constr
 $$df = (R-1)(C-1).$$
 Taking this same idea to the dual continuous case where recursive binning has generated $K$ bins, we ignore the arbitrary and mis-aligned nature of the bins and instead treat the $K$ bins like the result of a regular grid with its implied contingency table along rows and columns. This suggests the approximation 
 $$df = (\sqrt{K} - 1)^2,$$
-which works surprisingly well in practice. Similarly, when one variable is categorical on $M$ categories and the other is continuous, the same line of thinking leads to a formula using the average number of bins per category as
+which works surprisingly well in practice given how arbitrary the choice is. Similarly, when one variable is categorical on $M$ categories and the other is continuous, the same line of thinking leads to a formula using the average number of bins per category as
 $$df = (M-1) \left ( \frac{K}{M} - 1 \right ).$$
-Optionally, the argument `ptype` can be set in the call to `DepSearch` to change the $p$-value approximation used. The other options include the conservative $K-1$, a gamma approximation to the distribution, and a fitted degrees of freedom based on a large empirical study.
+Optionally, the argument `ptype` can be set in the call to `DepSearch` to change the $p$-value approximation used. The other options include the conservative $K-1$, a gamma approximation to the distribution, and fitted degrees of freedom based on a large empirical study.
 
 ### Customizing AssocBin
 
@@ -263,7 +263,7 @@ Plotting this greedy version of the algorithm, the top associations do not chang
 plot(heartAssociations_greedy)
 ```
 
-Indeed, a key finding of [Salahub and Oldford, 2025](https://arxiv.org/abs/2311.08561) is that binning algorithms based on maximization do not perform much better than random splits in the identification of patterns, and that maximization introduces systematic bias to pattern detection. A downside of maximization, however, can be seen in the considerably inflated significance of the top association between `study` and `chol` in this greedy algorithm compared to the random one. By actively seeking large residual values, maximization prevents the computation of correct, or approximately correct, $p$-values through typical distributional approximations. Large simulations must be used instead.
+Indeed, a key finding of [Salahub and Oldford, 2025](https://arxiv.org/abs/2311.08561) is that binning algorithms based on maximization do not perform much better than random splits in the identification of patterns, and that maximization introduces systematic bias to pattern detection. An additional downside to maximization can be seen in the considerably inflated significance of the top association between `study` and `chol` in this greedy algorithm compared to the random one. By actively seeking large residual values, maximization prevents the computation of correct, or approximately correct, $p$-values through typical distributional approximations. Large simulations must be used instead.
 
 Maximizing in a greedy way is not all bad, however. For one, it makes the algorithm deterministic for a given sample, while the random algorithm is inherently somewhat noisy. Additionally, and evidently in the case of the top association, it produces sharper departure displays which better highlight the areas of low and high point concentration.
 
@@ -325,7 +325,7 @@ plotBinning(thalachOldpeak, pch = 20,
             fill=residualFill(thalachOldpeak, nbr = 10))
 ```
 
-The fill from this function simply represents the residuals. By defauly, blue indicates a negative residual while red indicates a positive one. A great deal of customization is possible with this function: custom colour breaks can be specified using `breaks`, or alternatively the number of breaks can be specified using `nbr` to increase or decrease the resolution. Should we want to use a different residual function to generate the saturation, the `resFun` can be specified. We can also change the colour range using the `colrng` argument.
+The fill from this function simply represents the residuals. By default, blue indicates a negative residual while red indicates a positive one. A great deal of customization is possible with this function: custom colour breaks can be specified using `breaks`, or alternatively the number of breaks can be specified using `nbr` to increase or decrease the resolution. Should we want to use a different residual function to generate the saturation, the `resFun` can be specified. We can also change the colour range using the `colrng` argument.
 ```{r, fig.width=6, fig.height=6, fig.align='center'}
 plotBinning(thalachOldpeak, pch = 20, 
             xlab = "Maximum heart rate during exercise",
@@ -336,4 +336,63 @@ plotBinning(thalachOldpeak, pch = 20,
                               colrng = c("orange", "pink", "blue")))
 ```
 
-Finally, the `importanceFill` function implements the procedure described above. It standardizes the $\chi^2$ residuals and applies a Bonferroni correction before shading only those bins with residuals significant when standardized and multiple testing is accounted for. This is the default fill applied to bins by `depDisplay`.
+Finally, the `importanceFill` function implements the default fill described earlier for `depDisplay`. It standardizes the $\chi^2$ residuals and applies a Bonferroni correction before shading only those bins with standardized residuals that are significant when multiple testing is accounted for.
+
+### Drawing conclusions about data from `AssocBin`
+
+Let's return to the associations in the cleaned heart data.
+
+```{r}
+summary(heartAssociations)
+```
+
+The summary indicates that most of the pairs show some sign of dependence while the top ten breakdown indicates that many of these are *very* strongly dependent. The categorical `study` variable is present in five of the top ten pairs, suggesting that the patients included at each hospital were not drawn from similar populations. In particular, `study` and `num` are highly related, suggesting that the different studies performed at different hospitals targeted patients with different severity of heart disease.
+
+The top 5 variable plots indicate that data quality questions may also be to blame for some of this.
+
+```{r, fig.width=6, fig.height=6, fig.align='center'}
+plot(heartAssociations)
+```
+
+The top association between `study` and `chol` suggests that the patients selected for one study all had cholesterol values close to zero. Indeed, inspecting closer:
+
+```{r, fig.width=6, fig.height=6, fig.align='center'}
+depDisplay(heartAssociations, pair = 1, pch = 20, 
+           xlab="Study", ylab="Serum cholesterol")
+```
+
+We can see the short hand name of the offending study. Viewing the raw data confirms that the cholesterol values have either been lost or recorded improperly as all are zero.
+
+```{r}
+heartClean$chol[heartClean$study == "switzerland"]
+```
+
+Noting this unreliability, we may wish to repeat our association analysis for a subset of the data corresponding to a single study where more standardization can be assumed in the data (and where there are no indications of additional missing data). The largest study is the `cleveland` study.
+
+```{r}
+heartCleveland <- heartClean[heartClean$study == "cleveland",]
+heartCleveland$study <- NULL
+clevelandAssociations <- DepSearch(heartCleveland)
+set.seed(90192)
+summary(clevelandAssociations)
+```
+
+Removing the impact of study, a much smaller proportion of pairs is identified as significant. Some of the top pairs remain the same, however. `num:cp`, `num:exang`, and `exang:cp` remain the top three pairs when study is removed.
+
+```{r, fig.width=6, fig.height=6, fig.align='center'}
+plot(clevelandAssociations, which = 1:3)
+```
+
+Exercise-induced angina, coronary artery disease (CAD), and clinical chest pain are all strongly related. Inspecting the plots, we can see that both exercise-induced angina and clinical chest pain increase in the number of blocked arteries in a patient. As exercise induced angina is an induced chest pain, this supports the simple and unsurprising conclusion that patients with worse CAD have more severe chest discomfort.
+
+```{r, fig.width=6, fig.height=6, fig.align='center'}
+plot(clevelandAssociations, which = 4:9)
+```
+
+The following relationships largely center around `thalach`: the maximum patient heart rate achieved during exercise. It seems to decrease with age, the severity of CAD, the presence of exercise-induced angina, and the ST wave depression from exercise. These pair, then, seem to reflect how CAD and age impact the maximum exertion a patient is capable of during exercise. Older patients with hearts more impacted by CAD cannot exert their hearts as much as younger, healthier patients.
+
+```{r, fig.width=6, fig.height=6, fig.align='center'}
+plot(clevelandAssociations, which = 10:16)
+```
+
+The final significant relationships at 5% seem to echo these earlier themes but also highlight important sex differences between male and female patients. Generally, female patients seem to have lower incidence of CAD, less exercise-induced angina, and lower cholesterol.

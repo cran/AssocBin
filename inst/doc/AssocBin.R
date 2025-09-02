@@ -153,3 +153,32 @@ plotBinning(thalachOldpeak, pch = 20,
                               resFun=binMI,
                               colrng = c("orange", "pink", "blue")))
 
+## -----------------------------------------------------------------------------
+summary(heartAssociations)
+
+## ----fig.width=6, fig.height=6, fig.align='center'----------------------------
+plot(heartAssociations)
+
+## ----fig.width=6, fig.height=6, fig.align='center'----------------------------
+depDisplay(heartAssociations, pair = 1, pch = 20, 
+           xlab="Study", ylab="Serum cholesterol")
+
+## -----------------------------------------------------------------------------
+heartClean$chol[heartClean$study == "switzerland"]
+
+## -----------------------------------------------------------------------------
+heartCleveland <- heartClean[heartClean$study == "cleveland",]
+heartCleveland$study <- NULL
+clevelandAssociations <- DepSearch(heartCleveland)
+set.seed(90192)
+summary(clevelandAssociations)
+
+## ----fig.width=6, fig.height=6, fig.align='center'----------------------------
+plot(clevelandAssociations, which = 1:3)
+
+## ----fig.width=6, fig.height=6, fig.align='center'----------------------------
+plot(clevelandAssociations, which = 4:9)
+
+## ----fig.width=6, fig.height=6, fig.align='center'----------------------------
+plot(clevelandAssociations, which = 10:16)
+
